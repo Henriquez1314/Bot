@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Productos - Admin</title>
+  <link rel="stylesheet" href="/panel/static/styles.css">
+</head>
+<body>
+  <h1>Productos</h1>
+  <div>
+    <label>Admin Key: <input id="adminKey" type="password" value="mi_admin_key_secreto"></label>
+    <button onclick="cargarProductos()">Cargar</button>
+    <button onclick="showCrear()">Crear Producto</button>
+    <a href="/panel">Volver Dashboard</a>
+  </div>
+
+  <div id="crear" style="display:none;">
+    <h3>Crear / Editar producto</h3>
+    <input id="pNombre" placeholder="Nombre"><br>
+    <input id="pPrecio" placeholder="Precio"><br>
+    <input id="pStock" placeholder="Stock"><br>
+    <input id="pImagen" placeholder="ImagenUrl"><br>
+    <textarea id="pDesc" placeholder="Descripcion"></textarea><br>
+    <button onclick="crearProducto()">Guardar</button>
+  </div>
+
+  <table border="1" id="tbl"></table>
+
+  <script src="/panel/static/script.js"></script>
+  <script>
+    async function cargarProductos(){
+      const key = document.getElementById('adminKey').value;
+      const res = await fetch('/productos');
+      const prods = await res.json();
+      const tbl = document.getElementById('tbl');
+      tbl.innerHTML = '<tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>';
+      prods.forEach(p=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.Id}</td><td>${p.Nombre}</td><td>${p.Precio}</td><td>${p.Stock}</td>
+          <td>
+            <button onclick="editar(${p.Id})">Editar</button>
+            <button onclick="borrar(${p.Id})">Eliminar</button>
+          </td>`;
+        tbl.appendChild(tr);
+      });
+    }
+
+    function showCrear(){ document.getElementById('crear').style.display='block' }
+
+    async function crearProducto(){
+      const key = document.getElementById('adminKey').value;
+      const body = {
+        Nombre: document.getElementById('pNombre').value,
+        Descripcion: document.getElementById('pDesc').value,
+        Precio: parseFloat(document.getElementById('pPrecio').value || 0),
+        ImagenUrl: document.getElementById('pImagen').value,
+        Stock: parseInt(document.getElementById('pStock').value || 0)
+      };
+      const res = await fetch('/admin/productos', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','x-admin-key': key},
+        body: JSON.stringify(body)
+      });
+      if(res.ok){
+        alert('Creado');
+        cargarProductos();
+      }else{
+        alert('Error: '+ (await res.text()));
+      }
+    }
+
+    async function borrar(id){
+      const key = document.getElementById('adminKey').value;
+      if(!confirm('Borrar?')) return;
+      const res = await fetch(`/admin/productos/${id}`, {
+        method:'DELETE',
+        headers: {'x-admin-key': key}
+      });
+      if(res.ok) cargarProductos(); else alert('Error');
+    }
+
+    async function editar(id){
+      // para simplicidad abrir prompt con nuevos datos
+      const key = document.getElementById('adminKey').value;
+      const nombre = prompt('Nombre');
+      const precio = prompt('Precio');
+      const stock = prompt('Stock');
+      const body = {
+        Nombre: nombre,
+        Descripcion: '',
+        DescripcionCorta: '',
+        Precio: parseFloat(precio || 0),
+        ImagenUrl: '',
+        Stock: parseInt(stock||0)
+      };
+      const res = await fetch(`/admin/productos/${id}`, {
+        method:'PUT',
+        headers: {'Content-Type':'application/json','x-admin-key': key},
+        body: JSON.stringify(body)
+      });
+      if(res.ok) cargarProductos(); else alert('Error');
+    }
+
+    // carga inicial
+    cargarProductos();
+  </script>
+</body>
+</html>

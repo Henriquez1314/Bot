@@ -1,0 +1,6 @@
+python-telegram-bot==20.4
+fastapi
+uvicorn
+psycopg2-binary
+sqlalchemy
+pydantic

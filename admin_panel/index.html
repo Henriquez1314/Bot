@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Panel Admin - Bot E-Commerce</title>
+  <link rel="stylesheet" href="/panel/static/styles.css">
+</head>
+<body>
+  <h1>Panel Admin - Bot E-Commerce</h1>
+  <div>
+    <label>Admin Key: <input id="adminKey" type="password" value="mi_admin_key_secreto"></label>
+    <button onclick="goProductos()">Productos</button>
+    <button onclick="goPedidos()">Pedidos</button>
+    <button onclick="goFAQ()">FAQ</button>
+  </div>
+
+  <div id="dashboard">
+    <h2>Dashboard</h2>
+    <div id="stats">Cargando...</div>
+  </div>
+
+  <script src="/panel/static/script.js"></script>
+  <script>
+    const ADMIN_INPUT = document.getElementById('adminKey');
+
+    async function goProductos(){
+      window.location.href = "/panel/static/products.html";
+    }
+    async function goPedidos(){
+      window.location.href = "/panel/static/pedidos.html";
+    }
+    async function goFAQ(){
+      alert('FAQ: editar desde /panel/static/ (puedes crear la pantalla).');
+    }
+    // cargar stats
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      const api = "/productos";
+      try{
+        const res = await fetch(api);
+        const prods = await res.json();
+        document.getElementById('stats').innerText = `Productos: ${prods.length}`;
+      }catch(e){
+        document.getElementById('stats').innerText = 'Error cargando stats';
+      }
+    });
+  </script>
+</body>
+</html>

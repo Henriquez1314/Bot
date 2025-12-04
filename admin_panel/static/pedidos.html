@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8" /><title>Pedidos - Admin</title>
+<link rel="stylesheet" href="/panel/static/styles.css"></head>
+<body>
+  <h1>Pedidos</h1>
+  <label>Admin Key: <input id="adminKey" type="password" value="mi_admin_key_secreto"></label>
+  <button onclick="cargar()">Cargar pedidos</button>
+  <a href="/panel">Volver Dashboard</a>
+  <table border="1" id="tbl"></table>
+
+  <script src="/panel/static/script.js"></script>
+  <script>
+    async function cargar(){
+      const key = document.getElementById('adminKey').value;
+      const res = await fetch('/admin/pedidos', { headers: {'x-admin-key': key} });
+      if(!res.ok){ alert('Error '+res.status); return; }
+      const pedidos = await res.json();
+      const tbl = document.getElementById('tbl');
+      tbl.innerHTML = '<tr><th>ID</th><th>Usuario</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>';
+      pedidos.forEach(p=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.Id}</td><td>${p.UsuarioId}</td><td>${p.Total}</td><td>${p.Estado}</td>
+          <td>
+            <select id="sel${p.Id}">
+              <option>pendiente</option><option>en preparación</option><option>enviado</option><option>entregado</option><option>cancelado</option>
+            </select>
+            <button onclick="cambiar(${p.Id})">Cambiar</button>
+          </td>`;
+        tbl.appendChild(tr);
+      });
+    }
+
+    async function cambiar(id){
+      const key = document.getElementById('adminKey').value;
+      const nuevo = document.getElementById('sel'+id).value;
+      const res = await fetch(`/admin/pedidos/${id}/estado?estado=${encodeURIComponent(nuevo)}`, {
+        method:'PUT',
+        headers: {'x-admin-key': key}
+      });
+      if(res.ok){ alert('Estado cambiado'); cargar() } else { alert('Error') }
+    }
+
+    cargar();
+  </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+BOT_TOKEN = "8312937932:AAG2MfzeSVXOflTLxqRm-uvvpe0srovE-8c"
+API_URL = "http://127.0.0.1:8000"
+
