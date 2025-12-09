@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from datetime import datetime, timezone
 from .db import SessionLocal, engine
 from . import models
+
 import os
 
 models.Base.metadata.create_all(bind=engine)
@@ -50,14 +51,18 @@ class PedidoItem(BaseModel):
 
 class PedidoCreate(BaseModel):
     usuario_id: int
+    business_id: int 
     direccion: str
     telefono: str
     productos: list[PedidoItem]
 
 # ---------------- PUBLIC ENDPOINTS (existentes) ----------------
-@app.get("/productos", response_model=list[ProductoOut])
-def listar_productos(db: Session = Depends(get_db)):
-    return db.query(models.Producto).all()
+@app.get("/productos")
+def listar_productos(business_id: int, db: Session = Depends(get_db)):
+    return db.query(models.Producto).filter(
+        models.Producto.BusinessId == business_id
+    ).all()
+
 
 @app.get("/productos/{pid}", response_model=ProductoOut)
 def obtener_producto(pid: int, db: Session = Depends(get_db)):
@@ -71,6 +76,7 @@ def obtener_producto(pid: int, db: Session = Depends(get_db)):
 def crear_pedido(data: PedidoCreate, db: Session = Depends(get_db)):
     nuevo = models.Pedido(
         UsuarioId=data.usuario_id,
+        BusinessId=data.business_id,
         Direccion=data.direccion,
         Telefono=data.telefono,
         FechaPedido=datetime.now(timezone.utc),
@@ -130,6 +136,7 @@ def cancelar_pedido(pid: int, db: Session = Depends(get_db)):
 
     db.commit()
     return {"status": "cancelado"}
+
 
 # ---------------- ADMIN ENDPOINTS (requieren x-admin-key header) ----------------
 def require_admin(x_admin_key: str = Header(...)):

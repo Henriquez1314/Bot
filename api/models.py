@@ -1,5 +1,5 @@
 # api/models.py (solo mostrar modificaciones relevantes)
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, BigInteger
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, BigInteger, Boolean
 from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
@@ -8,21 +8,25 @@ class Producto(Base):
     __tablename__ = "Productos"
 
     Id = Column(Integer, primary_key=True, index=True)
+    BusinessId = Column(Integer, ForeignKey("Negocios.Id"), nullable=False)  # <- NUEVO
     Nombre = Column(String(255), nullable=False)
     Descripcion = Column(String(500), nullable=True)
     DescripcionCorta = Column(String(255), nullable=True)
     Precio = Column(Float, nullable=False)
     ImagenUrl = Column(String(500), nullable=True)
-    Stock = Column(Integer, default=0)   # <- nueva columna
+    Stock = Column(Integer, default=0)
 
+    negocio = relationship("Negocio", back_populates="productos")
     detalles = relationship("PedidoDetalle", back_populates="producto")
+
 
 
 class Pedido(Base):
     __tablename__ = "Pedidos"
 
     Id = Column(Integer, primary_key=True, index=True)
-    UsuarioId = Column(BigInteger, nullable=False)   # ← CORREGIDO (antes Integer)
+    UsuarioId = Column(BigInteger, nullable=False)
+    BusinessId = Column(Integer, ForeignKey("Negocios.Id"), nullable=False)  # <- NUEVO
     Direccion = Column(String(300))
     Telefono = Column(String(50))
     FechaPedido = Column(DateTime)
@@ -31,7 +35,9 @@ class Pedido(Base):
     Total = Column(Float, default=0)
     Estado = Column(String(20), default="pendiente")
 
+    negocio = relationship("Negocio", back_populates="pedidos")
     detalles = relationship("PedidoDetalle", back_populates="pedido", cascade="all, delete")
+
 
 
 class PedidoDetalle(Base):
@@ -46,3 +52,27 @@ class PedidoDetalle(Base):
 
     pedido = relationship("Pedido", back_populates="detalles")
     producto = relationship("Producto", back_populates="detalles")
+
+class Negocio(Base):
+    __tablename__ = "Negocios"
+
+    Id = Column(Integer, primary_key=True, index=True)
+    UsuarioId = Column(Integer, nullable=False)
+    PlanId = Column(Integer, nullable=True)
+    Nombre = Column(String(200), nullable=False)
+    Descripcion = Column(String(500), default="")
+    Telefono = Column(String(100), default="")
+    Direccion = Column(String(200), default="")
+    Ciudad = Column(String(100), default="")
+    Pais = Column(String(100), nullable=False)
+    ColorPrimario = Column(String(50), nullable=False)
+    MensajeBienvenida = Column(String(500), nullable=False)
+    Activo = Column(Boolean, nullable=False)
+    FechaRegistro = Column(DateTime, nullable=False)
+    FechaRenovacion = Column(DateTime)
+    FechaActualizacion = Column(DateTime, nullable=False)
+    FechaCreacion = Column(DateTime, nullable=False)
+
+    productos = relationship("Producto", back_populates="negocio")
+    pedidos = relationship("Pedido", back_populates="negocio")
+
