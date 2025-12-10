@@ -137,6 +137,14 @@ def cancelar_pedido(pid: int, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "cancelado"}
 
+@app.get("/negocio/{nid}")
+def obtener_negocio(nid: int, db: Session = Depends(get_db)):
+    negocio = db.query(models.Negocio).filter(models.Negocio.Id == nid).first()
+    if not negocio:
+        raise HTTPException(404, "Negocio no encontrado")
+    return {"Id": negocio.Id, "Nombre": negocio.Nombre}
+
+
 
 # ---------------- ADMIN ENDPOINTS (requieren x-admin-key header) ----------------
 def require_admin(x_admin_key: str = Header(...)):
