@@ -140,3 +140,9 @@ def obtener_negocio(nid: int, db: Session = Depends(get_db)):
     if not negocio:
         raise HTTPException(404, "Negocio no encontrado")
     return {"Id": negocio.Id, "Nombre": negocio.Nombre}
+
+@app.get("/negocios")
+def listar_negocios(db: Session = Depends(get_db)):
+    """Devuelve todos los negocios activos"""
+    negocios = db.query(models.Negocio).filter(models.Negocio.Activo == True).all()
+    return [{"Id": n.Id, "Nombre": n.Nombre} for n in negocios]
